@@ -15,7 +15,7 @@ public class Main {
             String userInput = scanner.next();
 
             if (userInput.equals("view")) {
-                String fileName = getPath("Enter file name to view\n>> ", scanner);
+                Path fileName = getPath("Enter file name to view\n>> ", scanner);
                 if (fileName != null)
                     view(fileName);
 
@@ -32,19 +32,19 @@ public class Main {
                     userText = scanner.next();
                 }
 
-                String fileName = getPath("Enter file name to edit\n>> ", scanner);
+                Path fileName = getPath("Enter file name to edit\n>> ", scanner);
                 if (fileName != null)
                     edit(fileName, textQueue);
 
             } else if (userInput.equals("copy")) {
-                String copyFrom = getPath("Copy from\n>> ", scanner);
-                String copyTo = getPath("Copy to\n>> ", scanner);
+                Path copyFrom = getPath("Copy from\n>> ", scanner);
+                Path copyTo = getPath("Copy to\n>> ", scanner);
 
                 if (!(copyFrom == null || copyTo == null)) {
                     copyFile(copyFrom, copyTo);
                 }
             } else if (userInput.equals("new")) {
-                String newFileName = getPath("Enter file name to create\n>> ", scanner);
+                Path newFileName = getPath("Enter file name to create\n>> ", scanner);
 
                 if (newFileName != null)
                     createNewFile(newFileName);
@@ -53,15 +53,10 @@ public class Main {
             } else {
                 System.out.println("Unknown command: '" + userInput + "'");
             }
-
         }
-
-
     }
 
-    public static void view(String fileName) {
-        Path filePath = Paths.get(fileName);
-
+    public static void view(Path filePath) {
         try {
             for (String line : Files.readAllLines(filePath)) {
                 System.out.println(line);
@@ -71,9 +66,7 @@ public class Main {
         }
     }
 
-    public static void edit(String fileName, Queue<String> queue) {
-        Path filePath = Paths.get(fileName);
-
+    public static void edit(Path filePath, Queue<String> queue) {
         try {
             String item = queue.poll();
 
@@ -87,36 +80,25 @@ public class Main {
         }
     }
 
-
-    public static void copyFile(String copyFrom, String copyTo) {
-        Path copyFromPath = Paths.get(copyFrom);
-        Path copyToPath = Paths.get(copyTo);
-
+    public static void copyFile(Path copyFromPath, Path copyToPath) {
         try {
-
-            Files.createFile(copyToPath);
             for (String line : Files.readAllLines(copyFromPath)) {
                 Files.write(copyToPath, (line + "\n").getBytes(), StandardOpenOption.APPEND);
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
     }
 
-
-    public static void createNewFile(String fileName) {
-        Path newFilePath = Paths.get(fileName);
+    public static void createNewFile(Path newFilePath) {
         try {
             Files.createFile(newFilePath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
-    public static String getPath(String text, Scanner scanner) {
+    public static Path getPath(String text, Scanner scanner) {
         System.out.print(text);
 
         String fileName = scanner.next();
@@ -125,6 +107,15 @@ public class Main {
             System.out.println("Canceling...");
             return null;
         }
-        return fileName;
+        Path path = Paths.get(fileName);
+
+        if (!Files.isReadable(path))
+            try {
+                Files.createFile(path);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        return path;
     }
 }
